@@ -1,5 +1,4 @@
 TARGET=tcpserver
-OBJS=main.o	
 CC=gcc
 #CFLAGS=
 MAKE_DIR=$(PWD)
@@ -7,17 +6,22 @@ MAKE_DIR=$(PWD)
 OBJS_DIR=obj
 #INCLUDE_DIR=
 #INCLUDE= -I $(LIB_DIR) -I (OBJ_DIR) -I(INCLUDE_DIR)
-SUBDIRS=src obj
+SUBDIRS=src 
 TARGET_DIR=$(PWD)
+OBJS=src/*.o	
 
 export CC OBJS OBJS_DIR MAKE_DIR TARGET_DIR TARGET
 
-all:CHECK_DIR $(SUBDIRS)
+
+all:CHECK_DIR $(TARGET)
+$(TARGET):$(SUBDIRS)
+	$(CC) -o $(TARGET) $(OBJS)
 CHECK_DIR:
 	@echo $(PWD)
-$(SUBDIRS):ECHO
+$(SUBDIRS):ECHO 
 	make -C $@
 ECHO:
 	@echo begin compile
 clean:
-	-rm -f $(OBJS_DIR)*.o
+	make clean -C $(SUBDIRS)
+	-rm -rf $(TARGET)

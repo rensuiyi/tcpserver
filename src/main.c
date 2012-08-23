@@ -21,7 +21,7 @@
 #include <errno.h>
 #include "server.h"
 #include <time.h>
-
+#include "ip.h"
 #define SERVER_PORT 5000
 #define MAX_LISTEN  5
 
@@ -31,6 +31,7 @@ int main(int argc,char *argv[])
 	struct screen_buffer_list_node *phead;
 	struct screen_buffer_list_node *pnow;
 	int max_listen;
+	char ip[32];
 	/*
 	 * the variable about time
 	 */
@@ -53,15 +54,21 @@ int main(int argc,char *argv[])
 	{
 		max_listen=MAX_LISTEN;
 	}
+	/* *
+	 * get the local ip
+	 * */
+	getlocalhostip(ip);
+	
     phead=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
 	memset(phead,0,sizeof(struct screen_buffer_list_node));   
+	printf("\033[2J");
 	while(1)
 	{
 		time(&now);
 		ptime_now=localtime(&now);
-		printf("\033[2J");
-	sprintf(phead->buffer,"****IP:192.168.1.0    PORT:%5d    TIME:%02d:%02d:%02d****\n",port,ptime_now->tm_hour,ptime_now->tm_min,ptime_now->tm_sec);
-    
+		printf("\033[H\033[l");
+   //     printf("\x0c\x0c");
+	sprintf(phead->buffer,"****IP:%s    PORT:%5d    TIME:%02d:%02d:%02d****\n",ip,port,ptime_now->tm_hour,ptime_now->tm_min,ptime_now->tm_sec);
     printf(phead->buffer);
 	sleep(1);
 	fflush(stdout);

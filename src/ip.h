@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  server.c
+ *       Filename:  ip.h
  *
- *    Description:  part of server
+ *    Description:  part of tcp server
  *
  *        Version:  1.0
- *        Created:  2012年08月20日 21时45分38秒
+ *        Created:  2012年08月20日 21时47分26秒
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -15,18 +15,15 @@
  *
  * =====================================================================================
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-
-/*
- * the entry of the connect thread 
- * write the data to the file 
- * update the list buffer
- */
-int subthread()
+#ifndef __IP_H_
+#define __IP_H_
+#ifdef  __cpluscplus
+extern "C"
 {
-	return 0;
-}
+#endif /*__cpluscplus*/
+extern long getlocalhostip(char *);
 
+#ifdef __cpluscplus
+}
+#endif /*__cpluscplus*/
+#endif /*__IP_H_*/
