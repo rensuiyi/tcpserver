@@ -19,14 +19,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include "server.h"
+#include <time.h>
 
 #define SERVER_PORT 5000
 #define MAX_LISTEN  5
+
 int main(int argc,char *argv[])
 {
-	printf("tcp server start\n");
 	int port;
+	struct screen_buffer_list_node *phead;
+	struct screen_buffer_list_node *pnow;
 	int max_listen;
+	/*
+	 * the variable about time
+	 */
+	time_t now;
+	struct tm *ptime_now;
+
 	if((argc>1)&&(argv[1]!=NULL))
 	{
         port=atoi(argv[1]);
@@ -43,8 +53,19 @@ int main(int argc,char *argv[])
 	{
 		max_listen=MAX_LISTEN;
 	}
-   
-   printf("======PORT:%d     MAX LISTEN:%d=====\n",port,max_listen);
+    phead=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
+	memset(phead,0,sizeof(struct screen_buffer_list_node));   
+	while(1)
+	{
+		time(&now);
+		ptime_now=localtime(&now);
+		printf("\033[2J");
+	sprintf(phead->buffer,"****IP:192.168.1.0    PORT:%5d    TIME:%02d:%02d:%02d****\n",port,ptime_now->tm_hour,ptime_now->tm_min,ptime_now->tm_sec);
+    
+    printf(phead->buffer);
+	sleep(1);
+	fflush(stdout);
+	}
 	return 0;
 	
 }
