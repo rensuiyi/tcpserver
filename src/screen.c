@@ -43,6 +43,8 @@ void *screen_thread(void * para)
         time(&now);
         ptime_now=localtime(&now);
         printf("\033[H\033[l");
+        printf("\033[H\033[l");
+
         /*
          * update the screen
         */
@@ -58,7 +60,9 @@ void *screen_thread(void * para)
         num=0;
         /* get the list lock*/
         pthread_mutex_lock(&phead->mutex);
-        // printf("%s\r\n",phead->buffer);
+        /*
+         * print the socket infomation 
+         */
         plist=phead->pnext;    
         while (plist!=NULL)
         {

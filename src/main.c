@@ -38,6 +38,25 @@ static int pthread_make(void *(*fn)(void *),void * arg)
     pthread_attr_destroy(&attr);
     return err;
 }
+/*
+ * @brief find the tail of the list
+ * 
+ * @author renyong (8/30/2012)
+ * 
+ * @param phead 
+ * 
+ * @return struct screen_buffer_list_node* 
+ */
+static struct screen_buffer_list_node * list_find_tail(struct screen_buffer_list_node *phead)
+{
+    struct screen_buffer_list_node *plist;
+    plist=phead;
+     while(plist->pnext!=NULL)
+     {
+         plist=plist->pnext;
+     }
+     return plist;
+}
 int main(int argc,char *argv[])
 {
     struct screen_buffer_list_node *phead;
@@ -143,11 +162,13 @@ int main(int argc,char *argv[])
             pthread_mutex_lock(&phead->mutex);
 
             pthread_mutex_init(&(plist->mutex),NULL);
+            plist->timeout=TCP_TIMEOUT;
             //sprintf()
+            pnow=list_find_tail(phead);
 
             pnow->pnext=plist;
             plist->ppre=pnow;
-            pnow=plist;
+            //pnow=plist;
 
             /*
              * collect the list_node of the disconnect member 
@@ -157,6 +178,7 @@ int main(int argc,char *argv[])
             pcleanlist=phead;
             while(pcleanlist!=NULL)
             {
+                pnow=pcleanlist->pnext;
                 if(pcleanlist->sockfd==-1)
                 {
                     if(pcleanlist->pnext!=NULL );
@@ -169,7 +191,7 @@ int main(int argc,char *argv[])
                     }
                     free(pcleanlist);
                 }
-                pcleanlist=pcleanlist->pnext;
+             pcleanlist=pnow;
             }
 #endif  
             /*release the list lock*/

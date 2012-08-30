@@ -9,10 +9,13 @@ extern "C"
 #include <sys/socket.h>
 #include<netinet/in.h>
 
+
+#define TCP_TIMEOUT  120 //2min
 struct screen_buffer_list_node
 {
 	char buffer[128];
 	int  attr;
+        int timeout;
         pthread_mutex_t mutex;
         struct sockaddr_in addr;
         int sockfd;
