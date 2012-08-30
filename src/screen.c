@@ -63,7 +63,10 @@ void *screen_thread(void * para)
             }
             else 
             {
-                printf("NO:%2d%s",num,plist->buffer);
+                if(plist->buffer!=NULL)
+                {
+                    printf("NO:%2d%s",num,plist->buffer);
+                }
             }
                 plist=plist->pnext;
                 num++;     

@@ -6,15 +6,47 @@
 #include <sys/socket.h>
 #include <sys/errno.h>
 #include <netinet/in.h>
-/*
- * the entry of the connect thread 
- * write the data to the file 
- * update the list buffer
+#include "main.h"
+
+/* 
+ * @brief the entry of the connect thread 
+ *    write the data to the file 
+ *    update the list buffer
+ * 
+ * @author renyong (8/30/2012)
+ * 
+ * @param para 
+ * 
+ * @return void* 
  */
-int subthread()
+void * subthread(void *para)
 {
-	return 0;
+	struct screen_buffer_list_node  *sock_list;
+	sock_list=(struct screen_buffer_list_node *)para;
+	/*
+	 * read the words and send it back
+	 */
+	sprintf(sock_list->buffer,"hello\n");
+	while(1)
+	{
+
+         sleep(1);
+	}
+
+
+	sleep(1);
+	pthread_exit(NULL);
 }
+/**
+ * @brief init the tcp server which and listen the port 
+ * 
+ * @author renyong (8/30/2012)
+ * 
+ * @param port 
+ * @param queuelen 
+ * 
+ * @return int  :the sock fd
+ */
 int tcp_server_init(int port,int queuelen)
 {
 	int serv_sockfd;

@@ -74,8 +74,9 @@ int main(int argc,char *argv[])
     }
     phead=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
     memset(phead,0,sizeof(struct screen_buffer_list_node));   
+    pnow=phead;
 
-    sprintf(phead->buffer,"author:rensuiyi\n");
+    sprintf(phead->buffer,"author:\nrensuiyi\n");
     
     /*
      * creat the screen thread
@@ -110,6 +111,17 @@ int main(int argc,char *argv[])
              */
             pthread_mutex_init(&(plist->mutex),NULL);
             //sprintf()
+           
+            pnow->pnext=plist;
+            plist->ppre=pnow;
+
+            err=pthread_create(&thread_id,&attr,subthread,plist);
+            sleep(1);
+            /*
+             * collect the list_node of the disconnect member 
+             * the fd<0 =-1 
+             */
+
 
         }
 

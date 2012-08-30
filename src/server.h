@@ -10,7 +10,7 @@ extern "C"
 {
 #endif /*__cpluscplus*/
 
-
+extern void *subthread(void *para);
 extern int tcp_server_init(int port,int len);
 #ifdef __cpluscplus
 }
