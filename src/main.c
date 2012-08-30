@@ -1,79 +1,120 @@
-/*
- * =====================================================================================
- *
- *       Filename:  main.c
- *
- *    Description:  part of tcpserver
- *
- *        Version:  1.0
- *        Created:  2012年08月20日 19时09分14秒
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  YOUR NAME (), 
- *   Organization:  
- *
- * =====================================================================================
- */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include "server.h"
 #include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include "main.h"
+#include "screen.h"
 #include "ip.h"
-#define SERVER_PORT 5000
+#define SERVER_PORT 50000
 #define MAX_LISTEN  5
+
+int hostport;
+char hostip[32];
+int host_max_listen;
 
 int main(int argc,char *argv[])
 {
-	int port;
-	struct screen_buffer_list_node *phead;
-	struct screen_buffer_list_node *pnow;
-	int max_listen;
-	char ip[32];
-	/*
-	 * the variable about time
-	 */
-	time_t now;
-	struct tm *ptime_now;
+    struct screen_buffer_list_node *phead;
+    struct screen_buffer_list_node *pnow;
+    struct screen_buffer_list_node *plist;
 
-	if((argc>1)&&(argv[1]!=NULL))
-	{
-        port=atoi(argv[1]);
-	}
-	else
-	{
-		port=SERVER_PORT;
-	}
-    if((argc==2)&&(argv[2]!=NULL))
-	{
-		max_listen=atoi(argv[2]);
-	}
-	else
-	{
-		max_listen=MAX_LISTEN;
-	}
-	/* *
-	 * get the local ip
-	 * */
-	getlocalhostip(ip);
-	
+    int err;
+
+    /*
+     * the variable about the socket
+     */
+    int sockfd;
+    socklen_t length;
+    /*
+     * the variable about the thread
+     */
+    pthread_t thread_id;
+    pthread_attr_t  attr;
+
+    if ((argc>1)&&(argv[1]!=NULL))
+    {
+        hostport=atoi(argv[1]);
+    }
+    else
+    {
+        hostport=SERVER_PORT;
+    }
+    if ((argc==2)&&(argv[2]!=NULL))
+    {
+        host_max_listen=atoi(argv[2]);
+    }
+    else
+    {
+        host_max_listen=MAX_LISTEN;
+    }
+    /* *
+     * get the local ip
+     * */
+    getlocalhostip(hostip);
+    /*
+     * start tcp server
+     */
+    sockfd=  tcp_server_init(hostport,host_max_listen);
+
+    if ((err=pthread_attr_init(&attr))!=0)
+    {
+        printf("the attribut init failed :%s\n",strerror(err));
+        exit(1);
+    }
+    err=pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
+    if (err!=0)
+    {
+        printf("the attribut detach error:%s\n",strerror(err));
+        exit(1);
+    }
     phead=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
-	memset(phead,0,sizeof(struct screen_buffer_list_node));   
-	printf("\033[2J");
-	while(1)
-	{
-		time(&now);
-		ptime_now=localtime(&now);
-		printf("\033[H\033[l");
-   //     printf("\x0c\x0c");
-	sprintf(phead->buffer,"****IP:%s    PORT:%5d    TIME:%02d:%02d:%02d****\n",ip,port,ptime_now->tm_hour,ptime_now->tm_min,ptime_now->tm_sec);
-    printf(phead->buffer);
-	sleep(1);
-	fflush(stdout);
-	}
-	return 0;
-	
+    memset(phead,0,sizeof(struct screen_buffer_list_node));   
+
+    sprintf(phead->buffer,"author:rensuiyi\n");
+    
+    /*
+     * creat the screen thread
+     */
+    err=pthread_create(&thread_id,&attr,screen_thread,phead);
+    if (err!=0)
+    {
+        printf("can't creat the thread :%s\n",strerror(err));
+        exit(1);
+    }
+    /*
+     * operation not finished ,should sleep for moment or the buffer cannot be refreshed. 
+     */
+   sleep(1);
+    length=sizeof(struct sockaddr_in);
+    while (1)
+    {
+        /*
+         * get the memory 
+         */
+        plist=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
+        memset(phead,0,sizeof(struct screen_buffer_list_node));   
+        plist->sockfd=accept(sockfd,(struct sockaddr *)(&plist->addr),&length);
+        if(plist->sockfd==-1)
+        {
+            free(plist);
+        }
+        else
+        {
+            /*
+             *  add the plist to the list
+             */
+            pthread_mutex_init(&(plist->mutex),NULL);
+            //sprintf()
+
+        }
+
+    }
+    return 0;
+
 }
 

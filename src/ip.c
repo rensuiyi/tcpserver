@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  ip.c
- *
- *    Description:  get the ip and mac address
- *
- *        Version:  1.0
- *        Created:  2012年08月23日 23时58分56秒
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  rensuiyi 
- *   Organization:  
- *
- * =====================================================================================
- */
 #include <stdio.h>    
 #include <stdlib.h>    
 #include <sys/types.h>    
@@ -36,7 +19,7 @@ long getlocalhostip(char *ipbuf)
     ip = -1;   
     if ((fd = socket (AF_INET, SOCK_DGRAM, 0)) >= 0) //socket.h    
     {   
-        ifc.ifc_len = sizeof buf;   
+        ifc.ifc_len = sizeof(buf);   
         ifc.ifc_buf = (caddr_t) buf;   
         if (!ioctl (fd, SIOCGIFCONF, (char *) &ifc)) //ioctl.h    
         {   

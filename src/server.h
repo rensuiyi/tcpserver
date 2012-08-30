@@ -1,19 +1,7 @@
-/*
- * =====================================================================================
- *
- *       Filename:  server.h
- *
- *    Description:  part of tcp server
- *
- *        Version:  1.0
- *        Created:  2012年08月20日 21时47分26秒
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  rensuiyi 
- *   Organization:  
- *
- * =====================================================================================
+/**
+ *  @brief this file is about the server system
+ *  
+ *  @author rensuiyi
  */
 #ifndef __TCPSERVER_H_
 #define __TCPSERVER_H_
@@ -22,14 +10,8 @@ extern "C"
 {
 #endif /*__cpluscplus*/
 
-struct screen_buffer_list_node
-{
-	char buffer[128];
-	int  attr;
-	struct screen_buffer_list_node *pnext;
-};
 
-
+extern int tcp_server_init(int port,int len);
 #ifdef __cpluscplus
 }
 #endif /*__cpluscplus*/
