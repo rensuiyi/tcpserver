@@ -26,26 +26,26 @@ extern int hostport;
 void *screen_thread(void * para)
 {
 
-   
+
     time_t now;
     struct tm * ptime_now;
     struct screen_buffer_list_node *plist;
     struct screen_buffer_list_node *phead;
-    char  buffer[128];
+    char  buffer[128*10];
     int num=0;
     phead=(struct screen_buffer_list_node *)para;
-  
+
     printf("\033[2J");
-    while(1)
-    {  
-        plist=phead;
+    while (1)
+    {
+        
 
         time(&now);
         ptime_now=localtime(&now);
         printf("\033[H\033[l");
-       /*
-        * update the screen
-       */
+        /*
+         * update the screen
+        */
         sprintf(buffer,"****IP:%s    PORT:%5d    TIME:%02d:%02d:%02d****\n",
                 hostip,
                 hostport,
@@ -53,26 +53,29 @@ void *screen_thread(void * para)
                 ptime_now->tm_min, 
                 ptime_now->tm_sec);
 
-        printf("%s",buffer);   
+        //printf("%s",buffer);   
+        sprintf(buffer,"%s%s",buffer,"NO   IP              PORT     STATU      RECIEVE       SEND\n");
         num=0;
-        while(plist!=NULL)
+        /* get the list lock*/
+        pthread_mutex_lock(&phead->mutex);
+        // printf("%s\r\n",phead->buffer);
+        plist=phead->pnext;    
+        while (plist!=NULL)
         {
-            if(num==0)
+            pthread_mutex_lock(&plist->mutex);
+            if (plist->buffer!=NULL)
             {
-                printf("%s",plist->buffer);
+                sprintf(buffer,"%s%2d%s\n",buffer,num,plist->buffer);            
             }
-            else 
-            {
-                if(plist->buffer!=NULL)
-                {
-                    printf("NO:%2d%s",num,plist->buffer);
-                }
-            }
-                plist=plist->pnext;
-                num++;     
+            pthread_mutex_unlock(&plist->mutex);
+            plist=plist->pnext;
+            num++;     
         }
+     
+        pthread_mutex_unlock(&phead->mutex);
+        printf("%s",buffer);
         fflush(stdout); 
-         sleep(1);
+        sleep(1);
     }
     pthread_exit(NULL);
 }

@@ -13,15 +13,37 @@
 #define SERVER_PORT 50000
 #define MAX_LISTEN  5
 
+/*global variable*/
 int hostport;
 char hostip[32];
 int host_max_listen;
 
+pthread_mutex_t  g_file_mutex;
+
+static int pthread_make(void *(*fn)(void *),void * arg)
+{
+    int err;
+    pthread_t tid;
+    pthread_attr_t attr;
+    err=pthread_attr_init(&attr);
+    if (err!=0)
+    {
+        return err;
+    }
+    err=pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
+    if (err==0)
+    {
+        err=pthread_create(&tid,&attr,fn,arg);
+    }
+    pthread_attr_destroy(&attr);
+    return err;
+}
 int main(int argc,char *argv[])
 {
     struct screen_buffer_list_node *phead;
     struct screen_buffer_list_node *pnow;
     struct screen_buffer_list_node *plist;
+    struct screen_buffer_list_node *pcleanlist;
 
     int err;
 
@@ -33,8 +55,6 @@ int main(int argc,char *argv[])
     /*
      * the variable about the thread
      */
-    pthread_t thread_id;
-    pthread_attr_t  attr;
 
     if ((argc>1)&&(argv[1]!=NULL))
     {
@@ -61,46 +81,55 @@ int main(int argc,char *argv[])
      */
     sockfd=  tcp_server_init(hostport,host_max_listen);
 
-    if ((err=pthread_attr_init(&attr))!=0)
-    {
-        printf("the attribut init failed :%s\n",strerror(err));
-        exit(1);
-    }
-    err=pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
-    if (err!=0)
-    {
-        printf("the attribut detach error:%s\n",strerror(err));
-        exit(1);
-    }
+
     phead=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
     memset(phead,0,sizeof(struct screen_buffer_list_node));   
     pnow=phead;
+    pthread_mutex_init(&(phead->mutex),NULL);
 
-    sprintf(phead->buffer,"author:\nrensuiyi\n");
-    
+    pthread_mutex_init(&g_file_mutex,NULL);
+
+    sprintf(phead->buffer,"author:rensuiyi\n");
+
     /*
      * creat the screen thread
      */
-    err=pthread_create(&thread_id,&attr,screen_thread,phead);
+#if 1
+    err=pthread_make(screen_thread,phead);
     if (err!=0)
     {
         printf("can't creat the thread :%s\n",strerror(err));
         exit(1);
     }
+#endif
     /*
      * operation not finished ,should sleep for moment or the buffer cannot be refreshed. 
      */
-   sleep(1);
+    sleep(1);
     length=sizeof(struct sockaddr_in);
+
+#if 0
+    plist=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
+    memset(plist,0,sizeof(struct screen_buffer_list_node));   
+    pthread_mutex_init(&(plist->mutex),NULL);
+
+    pnow->pnext=plist;
+    plist->ppre=pnow;
+    pnow=plist;
+
+    //err=pthread_make(subthread,plist);
+    sleep(1);
+#endif 
+
     while (1)
     {
         /*
          * get the memory 
          */
         plist=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));
-        memset(phead,0,sizeof(struct screen_buffer_list_node));   
+        memset(plist,0,sizeof(struct screen_buffer_list_node));   
         plist->sockfd=accept(sockfd,(struct sockaddr *)(&plist->addr),&length);
-        if(plist->sockfd==-1)
+        if (plist->sockfd==-1)
         {
             free(plist);
         }
@@ -109,20 +138,50 @@ int main(int argc,char *argv[])
             /*
              *  add the plist to the list
              */
+
+            /*get the list lock*/
+            pthread_mutex_lock(&phead->mutex);
+
             pthread_mutex_init(&(plist->mutex),NULL);
             //sprintf()
-           
+
             pnow->pnext=plist;
             plist->ppre=pnow;
+            pnow=plist;
 
-            err=pthread_create(&thread_id,&attr,subthread,plist);
-            sleep(1);
             /*
              * collect the list_node of the disconnect member 
              * the fd<0 =-1 
              */
+#if 1
+            pcleanlist=phead;
+            while(pcleanlist!=NULL)
+            {
+                if(pcleanlist->sockfd==-1)
+                {
+                    if(pcleanlist->pnext!=NULL );
+                    {
+                        pcleanlist->ppre->pnext=pcleanlist->pnext;
+                    }
+                    if(pcleanlist->ppre!=NULL)
+                    {
+                        pcleanlist->pnext->ppre=pcleanlist->ppre;
+                    }
+                    free(pcleanlist);
+                }
+                pcleanlist=pcleanlist->pnext;
+            }
+#endif  
+            /*release the list lock*/
+            pthread_mutex_unlock(&phead->mutex);
 
-
+            err=pthread_make(subthread,plist);
+            if(err!=0)
+            {
+                exit(0);
+            }
+            sleep(2);
+        
         }
 
     }
