@@ -42,7 +42,7 @@ void *screen_thread(void * para)
 
         time(&now);
         ptime_now=localtime(&now);
-        printf("\033[H\033[l");
+        printf("\033[J\033[H\033[l");
         /*
          * update the screen
         */
