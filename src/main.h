@@ -8,17 +8,19 @@ extern "C"
 #include <pthread.h>
 #include <sys/socket.h>
 #include<netinet/in.h>
-
+#include <time.h>
 
 #define TCP_TIMEOUT  120 //2min
 struct screen_buffer_list_node
 {
-	char buffer[128];
+        pthread_t tid;
+	char buffer[128];                  /*screen buffer*/
 	int  attr;
-        int timeout;
-        pthread_mutex_t mutex;
-        struct sockaddr_in addr;
-        int sockfd;
+        int timeout;                          /*time out value*/
+        time_t time_start;                /*the start time of the socket*/
+        pthread_mutex_t mutex;     /*the thread mutex*/
+        struct sockaddr_in addr;      /*the addr of the client*/
+        int sockfd;                            /*the socket fd*/
         struct screen_buffer_list_node *ppre;
 	struct screen_buffer_list_node *pnext;
 };

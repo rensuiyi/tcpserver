@@ -7,8 +7,11 @@
 #include <sys/errno.h>
 #include <netinet/in.h>
 #include "main.h"
+#include <time.h>
+#include <fcntl.h>
 
-extern g_file_mutex;
+extern pthread_mutex_t g_file_mutex;
+extern struct screen_buffer_list_node * g_phead;
 
 #define  RECIEVE_BUFFER_SIZE   1024
 /* 
@@ -30,12 +33,41 @@ void * subthread(void *para)
     int send_data_len=0;
     int len;
     char  data_buffer[1024];
+    int logfile_fd;
+    struct tm *sock_time;
+    /* 
+     *  get the tid
+     */
+  //  sock_list->tid=pthread_self();
+    /*
+     * write the log to the log file
+     */
+  //  sock_time= localtime(&sock_list->time_start);
+#if 0
+    pthread_mutex_lock(&g_file_mutex);
+    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,755);
+
+    if (logfile_fd>=0)
+    {
+        sprintf(data_buffer,"%02d-%02d  %02d:%02d:%02d",
+                sock_time->tm_mon,
+                sock_time->tm_mday,
+                sock_time->tm_hour,
+                sock_time->tm_min, 
+                sock_time->tm_sec);
+
+        sprintf(data_buffer,"%s connect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+        write(logfile_fd,data_buffer,strlen(data_buffer));
+        close(logfile_fd);
+    }
+    pthread_mutex_unlock(&g_file_mutex);
+#endif
     /*
      * read the words and send it back
      */
     while (1)
     {
-    
+
         pthread_mutex_lock(&sock_list->mutex); 
         /*
          * get the lock and modify the buffer 
@@ -47,12 +79,12 @@ void * subthread(void *para)
                 recive_data_len,
                 send_data_len
                );
-        
-          pthread_mutex_unlock(&sock_list->mutex);
-       
-         /*
-          * recive the data from the socket 
-          */   
+
+        pthread_mutex_unlock(&sock_list->mutex);
+
+        /*
+         * recive the data from the socket 
+         */   
 #if 1
         len=read(sock_list->sockfd,data_buffer,RECIEVE_BUFFER_SIZE-1);
         if (len>0)
@@ -62,11 +94,13 @@ void * subthread(void *para)
             if (len>0)
             {
                 send_data_len+=len;
+                sock_list->timeout=TCP_TIMEOUT;
             }
             else
             {
                 goto out;
             }
+
 
         }
         else
@@ -76,8 +110,22 @@ void * subthread(void *para)
 #endif 
         usleep(1000);
     }
-out:
+    out:
     sock_list->sockfd=-1;
+    /*
+     * release the list node
+     */
+    pthread_mutex_lock(&g_phead->mutex);
+    if (sock_list->pnext!=NULL)
+    {
+        sock_list->pnext->ppre=sock_list->ppre;
+    }
+    if (sock_list->ppre!=NULL)
+    {
+        sock_list->ppre->pnext=sock_list->pnext;
+    }
+    free(sock_list);
+    pthread_mutex_unlock(&g_phead->mutex);
     pthread_exit(NULL);
 }
 /**
@@ -90,8 +138,7 @@ out:
  * 
  * @return int  :the sock fd
  */
-int tcp_server_init(int port,int queuelen)
-{
+int tcp_server_init(int port,int queuelen){
     int serv_sockfd;
     struct sockaddr_in server_addr;
     bzero(&server_addr,sizeof(server_addr));
@@ -115,3 +162,4 @@ int tcp_server_init(int port,int queuelen)
     }
     return serv_sockfd;
 }
+

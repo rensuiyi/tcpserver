@@ -14,8 +14,8 @@
 #include  "stdlib.h"
 #include "sys/types.h"
 
-extern char hostip[64];
-extern int hostport;
+extern char g_hostip[64];
+extern int g_hostport;
 /**
  * @brief the thread of the flush the screen
  * 
@@ -47,14 +47,14 @@ void *screen_thread(void * para)
          * update the screen
         */
         sprintf(buffer,"****IP:%s    PORT:%5d    TIME:%02d:%02d:%02d****\n",
-                hostip,
-                hostport,
+                g_hostip,
+               g_hostport,
                 ptime_now->tm_hour,
                 ptime_now->tm_min, 
                 ptime_now->tm_sec);
 
         //printf("%s",buffer);   
-        sprintf(buffer,"%s%s",buffer,"NO   IP              PORT     STATU      RECIEVE       SEND\n");
+        sprintf(buffer,"%s%s",buffer,"NO   IP              PORT     STATU      RECIEVE       SEND      TIME(s)\n");
         num=0;
         /* get the list lock*/
         pthread_mutex_lock(&phead->mutex);
@@ -65,15 +65,25 @@ void *screen_thread(void * para)
         while (plist!=NULL)
         {
             pthread_mutex_lock(&plist->mutex);
+            time(&now);
             if (plist->buffer!=NULL)
             {
-                sprintf(buffer,"%s%2d%s\n",buffer,num,plist->buffer);            
+                sprintf(buffer,"%s%2d%s   %6d\n",buffer,num,plist->buffer,(int)(now-plist->time_start));            
             }
+            #if 0
+            if(plist->timeout==0)
+            {
+                pthread_cancel(plist->tid);
+            }
+            else
+            {
+                plist->timeout--;
+            }
+            #endif
             pthread_mutex_unlock(&plist->mutex);
             plist=plist->pnext;
             num++;     
-        }
-     
+        } 
         pthread_mutex_unlock(&phead->mutex);
         printf("%s",buffer);
         fflush(stdout); 
