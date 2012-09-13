@@ -33,35 +33,35 @@ void * subthread(void *para)
     int send_data_len=0;
     int len;
     char  data_buffer[1024];
+    char  log_buffer[1024];
     int logfile_fd;
     struct tm *sock_time;
     /* 
      *  get the tid
      */
-  //  sock_list->tid=pthread_self();
+    sock_list->tid=pthread_self();
     /*
      * write the log to the log file
      */
-  //  sock_time= localtime(&sock_list->time_start);
-#if 0
+    sock_time= localtime(&sock_list->time_start);
     pthread_mutex_lock(&g_file_mutex);
-    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,755);
+    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
     if (logfile_fd>=0)
     {
-        sprintf(data_buffer,"%02d-%02d  %02d:%02d:%02d",
+        sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
                 sock_time->tm_mon,
                 sock_time->tm_mday,
                 sock_time->tm_hour,
                 sock_time->tm_min, 
                 sock_time->tm_sec);
-
-        sprintf(data_buffer,"%s connect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
-        write(logfile_fd,data_buffer,strlen(data_buffer));
+        write(logfile_fd,log_buffer,strlen(log_buffer));
+        sprintf(log_buffer,"%s connect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+        write(logfile_fd,log_buffer,strlen(log_buffer));
         close(logfile_fd);
     }
     pthread_mutex_unlock(&g_file_mutex);
-#endif
+
     /*
      * read the words and send it back
      */
@@ -94,7 +94,32 @@ void * subthread(void *para)
             if (len>0)
             {
                 send_data_len+=len;
-                sock_list->timeout=TCP_TIMEOUT;
+                sock_list->timeout=TCP_TIMEOUT; 
+                /*
+                 * write the log file 
+                 */
+                sock_time= localtime(&sock_list->time_start);
+                pthread_mutex_lock(&g_file_mutex);
+                logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
+
+                if (logfile_fd>=0)
+                {
+                    sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
+                            sock_time->tm_mon,
+                            sock_time->tm_mday,
+                            sock_time->tm_hour,
+                            sock_time->tm_min, 
+                            sock_time->tm_sec);
+                    write(logfile_fd,log_buffer,strlen(log_buffer));
+                    sprintf(log_buffer,"%s data:\n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+                    write(logfile_fd,log_buffer,strlen(log_buffer));
+                    data_buffer[len]='\n';
+                    data_buffer[len+1]='\0';
+                    write(logfile_fd,data_buffer,len+1);
+
+                    close(logfile_fd);
+                }
+                pthread_mutex_unlock(&g_file_mutex);
             }
             else
             {
@@ -112,6 +137,24 @@ void * subthread(void *para)
     }
     out:
     sock_list->sockfd=-1;
+    sock_time= localtime(&sock_list->time_start);
+    pthread_mutex_lock(&g_file_mutex);
+    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
+
+    if (logfile_fd>=0)
+    {
+        sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
+                sock_time->tm_mon,
+                sock_time->tm_mday,
+                sock_time->tm_hour,
+                sock_time->tm_min, 
+                sock_time->tm_sec);
+        write(logfile_fd,log_buffer,strlen(log_buffer));
+        sprintf(log_buffer,"%s disconnect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+        write(logfile_fd,log_buffer,strlen(log_buffer));
+        close(logfile_fd);
+    }
+    pthread_mutex_unlock(&g_file_mutex);
     /*
      * release the list node
      */

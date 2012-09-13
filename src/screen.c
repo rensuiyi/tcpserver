@@ -70,16 +70,14 @@ void *screen_thread(void * para)
             {
                 sprintf(buffer,"%s%2d%s   %6d\n",buffer,num,plist->buffer,(int)(now-plist->time_start));            
             }
-            #if 0
             if(plist->timeout==0)
             {
-                pthread_cancel(plist->tid);
+               // pthread_cancel(plist->tid);
             }
             else
             {
                 plist->timeout--;
             }
-            #endif
             pthread_mutex_unlock(&plist->mutex);
             plist=plist->pnext;
             num++;     
