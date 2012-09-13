@@ -58,7 +58,9 @@ void *screen_thread(void * para)
         num=0;
         /* get the list lock*/
         pthread_mutex_lock(&phead->mutex);
-        // printf("%s\r\n",phead->buffer);
+        /*
+         * print the socket infomation 
+         */
         plist=phead->pnext;    
         while (plist!=NULL)
         {

@@ -47,9 +47,9 @@ void * subthread(void *para)
                 recive_data_len,
                 send_data_len
                );
-        //  printf("%s\n%08x",sock_list->buffer,sock_list);
+        
           pthread_mutex_unlock(&sock_list->mutex);
-        //  fflush(stdout);
+       
          /*
           * recive the data from the socket 
           */   
