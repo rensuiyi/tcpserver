@@ -6,9 +6,14 @@
 #include <sys/socket.h>
 #include <sys/errno.h>
 #include <netinet/in.h>
-#include "main.h"
 #include <time.h>
 #include <fcntl.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include "main.h"
+
 
 extern pthread_mutex_t g_file_mutex;
 extern struct screen_buffer_list_node * g_phead;
@@ -36,6 +41,9 @@ void * subthread(void *para)
     char  log_buffer[1024];
     int logfile_fd;
     struct tm *sock_time;
+     fd_set read_fds;
+    struct timeval timeout={TCP_TIMEOUT,0};
+
     /* 
      *  get the tid
      */
@@ -56,7 +64,7 @@ void * subthread(void *para)
                 sock_time->tm_min, 
                 sock_time->tm_sec);
         write(logfile_fd,log_buffer,strlen(log_buffer));
-        sprintf(log_buffer,"%s connect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+        sprintf(log_buffer,"%s [%d]  connect \n",(char *)inet_ntoa( sock_list->addr.sin_addr),sock_list->addr.sin_port);
         write(logfile_fd,log_buffer,strlen(log_buffer));
         close(logfile_fd);
     }
@@ -81,7 +89,19 @@ void * subthread(void *para)
                );
 
         pthread_mutex_unlock(&sock_list->mutex);
-
+        timeout.tv_sec=TCP_TIMEOUT;
+        FD_ZERO(&read_fds);//clear the set
+        FD_SET(sock_list->sockfd,&read_fds);
+        switch (select(sock_list->sockfd+1,&read_fds,NULL,NULL,&timeout))
+        {
+        case -1:goto out;
+        case 0 :goto out;
+        default:
+            if (!FD_ISSET(sock_list->sockfd,&read_fds) )
+            {
+                goto out;
+            }
+        }
         /*
          * recive the data from the socket 
          */   
@@ -111,7 +131,7 @@ void * subthread(void *para)
                             sock_time->tm_min, 
                             sock_time->tm_sec);
                     write(logfile_fd,log_buffer,strlen(log_buffer));
-                    sprintf(log_buffer,"%s data:\n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+                    sprintf(log_buffer,"%s [%d] data:\n",(char *)inet_ntoa( sock_list->addr.sin_addr),sock_list->addr.sin_port);
                     write(logfile_fd,log_buffer,strlen(log_buffer));
                     data_buffer[len]='\n';
                     data_buffer[len+1]='\0';
@@ -136,7 +156,8 @@ void * subthread(void *para)
         usleep(1000);
     }
     out:
-    sock_list->sockfd=-1;
+   close(sock_list->sockfd);
+    //sock_list->sockfd=-1;
     sock_time= localtime(&sock_list->time_start);
     pthread_mutex_lock(&g_file_mutex);
     logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
@@ -150,7 +171,7 @@ void * subthread(void *para)
                 sock_time->tm_min, 
                 sock_time->tm_sec);
         write(logfile_fd,log_buffer,strlen(log_buffer));
-        sprintf(log_buffer,"%s disconnect \n",(char *)inet_ntoa( sock_list->addr.sin_addr));
+        sprintf(log_buffer,"%s [%d]  disconnect \n",(char *)inet_ntoa( sock_list->addr.sin_addr),sock_list->addr.sin_port);
         write(logfile_fd,log_buffer,strlen(log_buffer));
         close(logfile_fd);
     }
