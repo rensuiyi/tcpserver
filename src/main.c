@@ -10,6 +10,7 @@
 #include "main.h"
 #include "screen.h"
 #include "ip.h"
+#include "udps.h"
 #define SERVER_PORT 50000
 #define MAX_LISTEN  5
 
@@ -120,13 +121,23 @@ int main(int argc,char *argv[])
     {
         printf("can't creat the thread :%s\n",strerror(err));
         exit(1);
-    }
-#endif
+    } 
     /*
      * operation not finished ,should sleep for moment or the buffer cannot be refreshed. 
      */
     sleep(1);
-    length=sizeof(struct sockaddr_in);
+#endif
+
+#if 1
+    err=pthread_make(udp_server_thread,NULL);
+    if(err!=0)
+    {
+        printf("can't create the thread:%s\n",strerror(err));
+        exit(1);
+    }
+#endif
+ 
+   length=sizeof(struct sockaddr_in);
 
 #if 0
     plist=(struct screen_buffer_list_node *)malloc(sizeof(struct screen_buffer_list_node));

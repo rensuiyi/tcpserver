@@ -6,7 +6,7 @@ RM=rm
 MKDIR=mkdir
 
 # -----Begin user-editable area-----
-LIBS+=-lpthread
+
 # -----End user-editable area-----
 
 # If no configuration is specified, "Debug" will be used
@@ -21,16 +21,16 @@ ifeq "$(CFG)" "Debug"
 OUTDIR=Debug
 OUTFILE=$(OUTDIR)/tcpserver
 CFG_INC=
-CFG_LIB=
+CFG_LIB=-lpthread 
 CFG_OBJ=
 COMMON_OBJ=$(OUTDIR)/ip.o $(OUTDIR)/main.o $(OUTDIR)/screen.o \
-	$(OUTDIR)/server.o 
+	$(OUTDIR)/server.o $(OUTDIR)/udps.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
 ALL_OBJ=$(OUTDIR)/ip.o $(OUTDIR)/main.o $(OUTDIR)/screen.o \
-	$(OUTDIR)/server.o 
+	$(OUTDIR)/server.o $(OUTDIR)/udps.o -lpthread 
 
 COMPILE=gcc -c   -g -o "$(OUTDIR)/$(*F).o" $(CFG_INC) $<
-LINK=gcc  -g   -o "$(OUTFILE)" $(ALL_OBJ) $(LIBS)
+LINK=gcc  -g -o "$(OUTFILE)" $(ALL_OBJ)
 
 # Pattern rules
 $(OUTDIR)/%.o : src/%.c
@@ -64,16 +64,16 @@ ifeq "$(CFG)" "Release"
 OUTDIR=Release
 OUTFILE=$(OUTDIR)/tcpserver
 CFG_INC=
-CFG_LIB=
+CFG_LIB=-lpthread 
 CFG_OBJ=
 COMMON_OBJ=$(OUTDIR)/ip.o $(OUTDIR)/main.o $(OUTDIR)/screen.o \
-	$(OUTDIR)/server.o 
+	$(OUTDIR)/server.o $(OUTDIR)/udps.o 
 OBJ=$(COMMON_OBJ) $(CFG_OBJ)
 ALL_OBJ=$(OUTDIR)/ip.o $(OUTDIR)/main.o $(OUTDIR)/screen.o \
-	$(OUTDIR)/server.o  
+	$(OUTDIR)/server.o $(OUTDIR)/udps.o -lpthread 
 
-COMPILE=gcc -c  -o "$(OUTDIR)/$(*F).o" $(CFG_INC) $<
-LINK=gcc    -o "$(OUTFILE)" $(ALL_OBJ) $(LIBS)
+COMPILE=gcc -c   -o "$(OUTDIR)/$(*F).o" $(CFG_INC) $<
+LINK=gcc  -o "$(OUTFILE)" $(ALL_OBJ)
 
 # Pattern rules
 $(OUTDIR)/%.o : src/%.c

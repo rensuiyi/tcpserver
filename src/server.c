@@ -53,12 +53,12 @@ void * subthread(void *para)
      */
     sock_time= localtime(&sock_list->time_start);
     pthread_mutex_lock(&g_file_mutex);
-    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
+    logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
     if (logfile_fd>=0)
     {
         sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
-                sock_time->tm_mon,
+                sock_time->tm_mon+1,
                 sock_time->tm_mday,
                 sock_time->tm_hour,
                 sock_time->tm_min, 
