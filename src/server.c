@@ -120,7 +120,7 @@ void * subthread(void *para)
                  */
                 sock_time= localtime(&sock_list->time_start);
                 pthread_mutex_lock(&g_file_mutex);
-                logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
+                logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
                 if (logfile_fd>=0)
                 {
@@ -160,7 +160,7 @@ void * subthread(void *para)
     //sock_list->sockfd=-1;
     sock_time= localtime(&sock_list->time_start);
     pthread_mutex_lock(&g_file_mutex);
-    logfile_fd=open("./log.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
+    logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
     if (logfile_fd>=0)
     {
