@@ -10,7 +10,7 @@ extern "C"
 #include<netinet/in.h>
 #include <time.h>
 
-#define TCP_TIMEOUT  120 //2min
+#define TCP_TIMEOUT  1200 //20min
 struct screen_buffer_list_node
 {
         pthread_t tid;

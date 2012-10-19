@@ -128,7 +128,7 @@ int main(int argc,char *argv[])
     sleep(1);
 #endif
 
-#if 1
+#if 0
     err=pthread_make(udp_server_thread,NULL);
     if(err!=0)
     {
