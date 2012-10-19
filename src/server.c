@@ -41,6 +41,7 @@ void * subthread(void *para)
     char  log_buffer[1024];
     int logfile_fd;
     struct tm *sock_time;
+    time_t  timenow;
      fd_set read_fds;
     struct timeval timeout={TCP_TIMEOUT,0};
 
@@ -51,6 +52,7 @@ void * subthread(void *para)
     /*
      * write the log to the log file
      */
+    time(&sock_list->time_start);
     sock_time= localtime(&sock_list->time_start);
     pthread_mutex_lock(&g_file_mutex);
     logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
@@ -118,7 +120,8 @@ void * subthread(void *para)
                 /*
                  * write the log file 
                  */
-                sock_time= localtime(&sock_list->time_start);
+                time(&timenow);
+                sock_time= localtime(&timenow);
                 pthread_mutex_lock(&g_file_mutex);
                 logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
@@ -158,7 +161,8 @@ void * subthread(void *para)
     out:
    close(sock_list->sockfd);
     //sock_list->sockfd=-1;
-    sock_time= localtime(&sock_list->time_start);
+     time(&timenow);
+    sock_time= localtime(&timenow);
     pthread_mutex_lock(&g_file_mutex);
     logfile_fd=open("./tcplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
 
