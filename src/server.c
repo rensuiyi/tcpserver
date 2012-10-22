@@ -129,7 +129,7 @@ void * subthread(void *para)
                 {
                     sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
                             sock_time->tm_mon,
-                            sock_time->tm_mday,
+                            sock_time->tm_mday+1,
                             sock_time->tm_hour,
                             sock_time->tm_min, 
                             sock_time->tm_sec);
@@ -169,7 +169,7 @@ void * subthread(void *para)
     if (logfile_fd>=0)
     {
         sprintf(log_buffer,"\n%02d-%02d  %02d:%02d:%02d\n",
-                sock_time->tm_mon,
+                sock_time->tm_mon+1,
                 sock_time->tm_mday,
                 sock_time->tm_hour,
                 sock_time->tm_min, 
