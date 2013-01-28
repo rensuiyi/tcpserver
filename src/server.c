@@ -18,7 +18,7 @@
 extern pthread_mutex_t g_file_mutex;
 extern struct screen_buffer_list_node * g_phead;
 
-#define  RECIEVE_BUFFER_SIZE   1024
+#define  RECIEVE_BUFFER_SIZE  3096 
 /* 
  * @brief the entry of the connect thread 
  *    write the data to the file 
@@ -37,7 +37,7 @@ void * subthread(void *para)
     int recive_data_len=0;
     int send_data_len=0;
     int len;
-    char  data_buffer[1024];
+    char  data_buffer[RECIEVE_BUFFER_SIZE];
     char  log_buffer[1024];
     int logfile_fd;
     struct tm *sock_time;

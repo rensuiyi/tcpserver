@@ -41,79 +41,51 @@ static int get_time_str(char *strbuffer,int len)
  * 
  * @return int 
  */
-extern void *udp_server_thread(void *para)
+void *udp_server_thread(void *para)
 {
-    /*
-     *  init the socket
-     */
-    extern int g_hostport;
-    int port=g_hostport;
-    int sockfd;
-    int udp_file_fd;
-    char buffer[128];
-    char time_buffer[32];
-    struct sockaddr_in servaddr, cliaddr;
-    unsigned int len;
-    /* 
-     * create a socket
-     */
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0); 
 
-    /* 
-     * init servaddr
-     */
-    bzero(&servaddr, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(port );
-    /*
-     *  bind the socket
-     */    
-    if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == -1)
+    int sock;
+//sendto中使用的对方地址
+    struct sockaddr_in toAddr;
+//在recvfrom中使用的对方主机地址
+    struct sockaddr_in fromAddr;
+    int recvLen;
+    unsigned int addrLen;
+    char recvBuffer[128];
+    sock = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+    if (sock < 0)
     {
-        perror("bind error\n");
-        pthread_exit(NULL);
+        printf("创建套接字失败了.\r\n");
+        exit(0);
     }
-    udp_file_fd=open("./udplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755);
-    if (udp_file_fd<0)
+    memset(&fromAddr,0,sizeof(fromAddr));
+    fromAddr.sin_family=AF_INET;
+    fromAddr.sin_addr.s_addr=htonl(INADDR_ANY);
+    fromAddr.sin_port = htons(10000);
+    if (bind(sock,(struct sockaddr*)&fromAddr,sizeof(fromAddr))<0)
     {
-        perror("open file failed\n");
-        goto out;
+        printf("bind() 函数使用失败了.\r\n");
+        close(sock);
+        exit(1);
     }
-    else
+    while (1)
     {
-        get_time_str(time_buffer,32);
-        write(udp_file_fd,time_buffer,strlen(time_buffer));
-        sprintf(buffer,"udp server start port:%6d \n",port);
-        write(udp_file_fd,buffer,strlen(buffer));
-        close(udp_file_fd);
-    }
-    /*
-     * read the data and sendback the words 
-     */
-    len=sizeof(cliaddr);
-    while(1 );
-    {
-        int n;
-        /* waiting for receive data */
-        n = recvfrom(sockfd,buffer,UDP_BUFFER_SIZE, 0, (struct sockaddr *)&cliaddr, &len);
-        if(n>0)
+        addrLen = sizeof(toAddr);
+        if ((recvLen = recvfrom(sock,recvBuffer,128,0,(struct sockaddr*)&toAddr,&addrLen))<0)
         {
-            if ((udp_file_fd=open("./udplog.txt",O_WRONLY|O_APPEND|O_CREAT,0755))>=0)
-            {
-                get_time_str(time_buffer,32);
-                write(udp_file_fd,time_buffer,strlen(time_buffer));
-                write(udp_file_fd,buffer,strlen(buffer));
-                write(udp_file_fd,"\n",1);
-                close(udp_file_fd);
-            }
+            printf("()recvfrom()函数使用失败了.\r\n");
+            close(sock);
+            exit(1);
         }
-        /* sent data back to client */
-        sendto(sockfd, buffer, n, 0, (struct sockaddr *)&cliaddr, len);
+        if (sendto(sock,recvBuffer,recvLen,0,(struct sockaddr*)&toAddr,sizeof(toAddr))!=recvLen)
+        {
+            printf("sendto fail\r\n");
+            close(sock);
+            exit(0);
+        }
+
     }
-    out:
-    close(sockfd);
-    pthread_exit(NULL);
+    return 0;
 }
 
 
